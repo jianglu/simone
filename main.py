@@ -21,6 +21,7 @@ col = df2["quesion"]
 #     print(uid, text)
 
 os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["KMP_DUPLICATE_LIB_OK"] = "True"
 
 # 创建 embeddings 模型 (sentence-transformers & transformers)
 # embeddings = Embeddings(path="sentence-transformers/nli-mpnet-base-v2")
@@ -33,17 +34,17 @@ for uid, text in enumerate(col):
 # Index the list of text
 embeddings.index([(text, text, text) for (uid, text) in enumerate(col)])
 
-def print_numbers():
-    for i in range(5):
-        time.sleep(1)
-        print(i)
+# def print_numbers():
+#     for i in range(5):
+#         time.sleep(1)
+#         print(i)
 
 
-# 创建线程
-thread = threading.Thread(target=print_numbers)
+# # 创建线程
+# thread = threading.Thread(target=print_numbers)
 
-# 启动线程
-thread.start()
+# # 启动线程
+# thread.start()
 
 while True:
     line = input("ME: ").strip()

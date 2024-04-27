@@ -16,6 +16,7 @@ df2 = df.drop_duplicates(subset="quesion", inplace=False)
 col = df2["quesion"]
 
 os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["KMP_DUPLICATE_LIB_OK"] = "True"
 
 # 创建 embeddings 模型 (sentence-transformers & transformers)
 # embeddings = Embeddings(path="sentence-transformers/nli-mpnet-base-v2")
@@ -31,16 +32,27 @@ embeddings.index([(text, text, text) for (uid, text) in enumerate(col)])
 
 class AppState:
     def __init__(self):
-        self.history = [(None, "A")]
+        self.history = [(None, None)]
 
-    def __str__(self):
-        return "{ history: {} }".format(self.history)
+    # def __str__(self):
+    #     return "{ history: {} }".format(self.history)
 
 
 def on_chat(question, history, state: AppState):
-    state.history.append([question, None])
-    return "", state.history
 
+    res = embeddings.search(question, 1)
+
+    if len(res) > 0:
+        (quesion, score) = res[0]
+        print(f"{quesion} {score}")
+
+        ds = df.loc[(df["quesion"] == quesion), :]
+        rand = random.randint(0, len(ds) - 1)
+        answer = ds.iloc[rand]
+
+        state.history.append([question, str(answer["answer"])])
+
+    return "", state.history
 
 # 每秒更新一次
 def on_tick(history, state: AppState):
@@ -71,7 +83,7 @@ def main():
             outputs=[question, chatbot],
         )
 
-        demo.load(fn=on_tick, inputs=[chatbot, state], outputs=[chatbot], every=1)
+        # demo.load(fn=on_tick, inputs=[chatbot, state], outputs=[chatbot], every=1)
 
     demo.queue().launch()
 
